@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Music Playlist</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma.css') }}" />
+</head>
+<body>
+
+<section class="hero is-success is-fullheight">
+    <div class="hero-body">
+        <div class="container">
+            <div class="column is-4 is-offset-4">
+                <div class="box">
+                    <form action="javascript:void(0);">
+
+
+
+                    <div class="field has-addons">
+                      <div class="control is-expanded">
+                        <input class="input" type="text" placeholder="Song name" id="song">
+                      </div>
+                      <div class="control">
+                        <input type="submit" class="button is-info" onclick="submitSong();" value="Submit">
+                      </div>
+                    </div>
+
+                    </form>
+
+                    <br>
+
+                    <div class="columns is-mobile">
+                      <div class="column">
+                        <button class="button is-danger" onclick="skip();">Skip</button>
+                      </div>
+                      <div class="column is-right">
+                          <form action="javascript:void(0);">
+                          <div class="field has-addons">
+                            <div class="control">
+                              <input class="input" type="text" placeholder="Volume" id="volume" size="3">
+                            </div>
+                            <div class="control">
+                              <input type="submit" class="button is-primary" onclick="changeVolume();" value="Change">
+                            </div>
+                          </div>
+                          </form>
+                      </div>
+                    </div>
+
+                    <br>
+
+                    <p id="queue"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+<script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
+<script type="text/javascript">
+    var socket = io('http://' + document.domain + ':' + location.port);
+
+    socket.on('connect', function(){
+        console.log("Connected!")
+    });
+
+    function submitSong() {
+        var songName = document.getElementById("song").value;
+        document.getElementById("song").value = "";
+        if (songName.length > 0) {
+            socket.emit('submit', songName);
+        }
+    }
+
+    function changeVolume() {
+        var volume = parseInt(document.getElementById("volume").value);
+        if (0 <= volume && volume <= 100) {
+            socket.emit('volume', volume);
+        }
+    }
+
+    function skip() {
+        socket.emit('skip');
+    }
+
+    socket.on('update', function(data){
+        document.getElementById("queue").innerHTML = data.queue;
+        document.getElementById("volume").value = data.volume;
+    });
+</script>
+</html>
